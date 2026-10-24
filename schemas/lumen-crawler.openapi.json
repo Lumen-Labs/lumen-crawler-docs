@@ -1,0 +1,1111 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Lumen Crawler API",
+    "version": "0.1.0",
+    "description": "Task API for Playwright-rendered crawls. Create a crawl, poll status, read Markdown, map, doors, and cleaned JSON."
+  },
+  "servers": [
+    {
+      "url": "https://crawler.lumen-labs.ai/v1",
+      "description": "Production"
+    }
+  ],
+  "paths": {
+    "/account": {
+      "get": {
+        "operationId": "getAccount",
+        "responses": {
+          "200": {
+            "description": "Current account",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Account"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          }
+        },
+        "description": "Return the authenticated console account.",
+        "tags": [
+          "account"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/account/usage": {
+      "get": {
+        "operationId": "getUsage",
+        "responses": {
+          "200": {
+            "description": "Monthly page usage",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Usage"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          }
+        },
+        "description": "Return monthly included-page usage for the account.",
+        "tags": [
+          "account"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/account/keys": {
+      "get": {
+        "operationId": "listApiKeys",
+        "responses": {
+          "200": {
+            "description": "API keys for the account",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiKeyListResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          }
+        },
+        "description": "List API key prefixes for the account. Secrets are never returned.",
+        "tags": [
+          "account"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      },
+      "post": {
+        "operationId": "createApiKey",
+        "responses": {
+          "201": {
+            "description": "Created key; secret is shown once",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateApiKeyResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          }
+        },
+        "description": "Create an API key. The secret is present only on this response.",
+        "tags": [
+          "account"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/account/keys/{id}": {
+      "delete": {
+        "operationId": "revokeApiKey",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Revoked",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiKey"
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/Problem"
+          }
+        },
+        "description": "Revoke an API key. Later crawl calls with that secret return 401.",
+        "tags": [
+          "account"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/billing/checkout": {
+      "post": {
+        "operationId": "createCheckout",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CheckoutRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Hosted Checkout session",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CheckoutResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          }
+        },
+        "description": "Create a Stripe Checkout session for Starter or Pro.",
+        "tags": [
+          "billing"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/billing/portal": {
+      "post": {
+        "operationId": "createPortal",
+        "responses": {
+          "200": {
+            "description": "Customer Portal session",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PortalResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "404": {
+            "$ref": "#/components/responses/Problem"
+          }
+        },
+        "description": "Create a Stripe Customer Portal session. 404 if the account has no customer.",
+        "tags": [
+          "billing"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/crawls": {
+      "get": {
+        "operationId": "listCrawls",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "default": 20,
+              "minimum": 1,
+              "maximum": 100
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Crawls for the API key tenant",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CrawlsListResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          }
+        },
+        "description": "List crawls for the API key tenant, or for the account when a console JWT is used.",
+        "tags": [
+          "crawls"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      },
+      "post": {
+        "operationId": "createCrawl",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCrawlRequest"
+              },
+              "example": {
+                "url": "https://example.com",
+                "max_pages": 50,
+                "cleanup": true
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Crawl accepted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CrawlResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "402": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "409": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "422": {
+            "$ref": "#/components/responses/Problem"
+          }
+        },
+        "description": "Accept a crawl. Returns 202. Requires Idempotency-Key. follow_doors true is 422.",
+        "tags": [
+          "crawls"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/crawls/{id}": {
+      "get": {
+        "operationId": "getCrawl",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/CrawlId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Crawl status",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CrawlResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/Problem"
+          }
+        },
+        "description": "Return crawl status, counts, config, cleanup, and stop_reason.",
+        "tags": [
+          "crawls"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/crawls/{id}/pages": {
+      "get": {
+        "operationId": "listPages",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/CrawlId"
+          },
+          {
+            "in": "query",
+            "name": "include",
+            "schema": {
+              "type": "string",
+              "description": "Comma-separated fields to include (markdown, cleaned)"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "default": 50,
+              "minimum": 1,
+              "maximum": 100
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Pages",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagesResponse"
+                }
+              }
+            }
+          }
+        },
+        "description": "List page records. Pass include=markdown,cleaned for bodies. cursor is the last urlHash.",
+        "tags": [
+          "crawls"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/crawls/{id}/map": {
+      "get": {
+        "operationId": "getMap",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/CrawlId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "In-universe sitemap graph",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MapResponse"
+                }
+              }
+            }
+          }
+        },
+        "description": "Return the in-universe node/edge graph. Doors are omitted.",
+        "tags": [
+          "crawls"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/crawls/{id}/doors": {
+      "get": {
+        "operationId": "listDoors",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/CrawlId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Off-universe doors",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DoorsResponse"
+                }
+              }
+            }
+          }
+        },
+        "description": "List off-universe URLs discovered but not fetched. No bodies.",
+        "tags": [
+          "crawls"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/crawls/{id}/cleaned": {
+      "get": {
+        "operationId": "getCleaned",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/CrawlId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Site-level cleaned JSON",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CleanedCrawl"
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "409": {
+            "$ref": "#/components/responses/Problem"
+          }
+        },
+        "description": "Return the site-level cleaned JSON rollup. 409 while cleanup runs; 404 if skipped.",
+        "tags": [
+          "crawls"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/crawls/{id}/cancel": {
+      "post": {
+        "operationId": "cancelCrawl",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/CrawlId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Cancelled",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CrawlResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "$ref": "#/components/responses/Problem"
+          }
+        },
+        "description": "Cancel a queued or running crawl. Finished crawls return 409.",
+        "tags": [
+          "crawls"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "parameters": {
+      "CrawlId": {
+        "in": "path",
+        "name": "id",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      }
+    },
+    "responses": {
+      "Problem": {
+        "description": "RFC 7807 error",
+        "content": {
+          "application/problem+json": {
+            "schema": {
+              "$ref": "#/components/schemas/Problem"
+            }
+          }
+        }
+      }
+    },
+    "schemas": {
+      "CreateCrawlRequest": {
+        "type": "object",
+        "required": [
+          "url"
+        ],
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "allowed_domains": {
+            "type": "array",
+            "maxItems": 20,
+            "items": {
+              "type": "string"
+            }
+          },
+          "max_pages": {
+            "type": "integer",
+            "default": 100,
+            "maximum": 5000
+          },
+          "follow_doors": {
+            "type": "boolean",
+            "default": false
+          },
+          "cleanup": {
+            "type": "boolean",
+            "default": true
+          }
+        }
+      },
+      "CrawlResponse": {
+        "type": "object",
+        "required": [
+          "id",
+          "status",
+          "created_at",
+          "elapsed_ms",
+          "counts",
+          "config",
+          "cleanup"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "queued",
+              "running",
+              "completed",
+              "cancelled",
+              "failed"
+            ]
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "started_at": {
+            "type": "string",
+            "nullable": true
+          },
+          "finished_at": {
+            "type": "string",
+            "nullable": true
+          },
+          "elapsed_ms": {
+            "type": "integer"
+          },
+          "counts": {
+            "$ref": "#/components/schemas/CrawlCounts"
+          },
+          "config": {
+            "$ref": "#/components/schemas/CrawlConfig"
+          },
+          "cleanup": {
+            "$ref": "#/components/schemas/CrawlCleanup"
+          },
+          "stop_reason": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "CrawlCounts": {
+        "type": "object",
+        "additionalProperties": {
+          "type": "integer"
+        }
+      },
+      "CrawlConfig": {
+        "type": "object",
+        "required": [
+          "url",
+          "allowed_domains",
+          "max_pages",
+          "follow_doors",
+          "cleanup"
+        ],
+        "properties": {
+          "url": {
+            "type": "string"
+          },
+          "allowed_domains": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "max_pages": {
+            "type": "integer"
+          },
+          "follow_doors": {
+            "type": "boolean"
+          },
+          "cleanup": {
+            "type": "boolean"
+          }
+        }
+      },
+      "CrawlCleanup": {
+        "type": "object",
+        "required": [
+          "status"
+        ],
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "skipped",
+              "pending",
+              "running",
+              "completed",
+              "failed"
+            ]
+          },
+          "model": {
+            "type": "string",
+            "nullable": true
+          },
+          "pages_cleaned": {
+            "type": "integer"
+          },
+          "error": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "PagesResponse": {
+        "type": "object",
+        "required": [
+          "items",
+          "next_cursor"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PageItem"
+            }
+          },
+          "next_cursor": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "PageItem": {
+        "type": "object",
+        "required": [
+          "url",
+          "canonical_url",
+          "status_code",
+          "ok",
+          "fetched_at",
+          "content_hash"
+        ],
+        "properties": {
+          "url": {
+            "type": "string"
+          },
+          "canonical_url": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string",
+            "nullable": true
+          },
+          "status_code": {
+            "type": "integer"
+          },
+          "ok": {
+            "type": "boolean"
+          },
+          "fetched_at": {
+            "type": "string"
+          },
+          "content_hash": {
+            "type": "string"
+          },
+          "extraction": {
+            "type": "string"
+          },
+          "markdown": {
+            "type": "string"
+          },
+          "cleaned": {
+            "$ref": "#/components/schemas/CleanedPage"
+          }
+        }
+      },
+      "MapResponse": {
+        "type": "object",
+        "required": [
+          "nodes",
+          "edges"
+        ],
+        "properties": {
+          "nodes": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "edges": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          }
+        }
+      },
+      "DoorsResponse": {
+        "type": "object",
+        "required": [
+          "items",
+          "next_cursor"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "next_cursor": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "CleanedPage": {
+        "type": "object",
+        "additionalProperties": true
+      },
+      "CleanedCrawl": {
+        "type": "object",
+        "additionalProperties": true
+      },
+      "Account": {
+        "type": "object",
+        "required": [
+          "id",
+          "email",
+          "plan",
+          "status",
+          "created_at"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "plan": {
+            "type": "string",
+            "enum": [
+              "free",
+              "starter",
+              "pro"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "active",
+              "past_due",
+              "canceled"
+            ]
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "Usage": {
+        "type": "object",
+        "required": [
+          "plan",
+          "included",
+          "used",
+          "remaining",
+          "period_end",
+          "overage_pages"
+        ],
+        "properties": {
+          "plan": {
+            "type": "string",
+            "enum": [
+              "free",
+              "starter",
+              "pro"
+            ]
+          },
+          "included": {
+            "type": "integer"
+          },
+          "used": {
+            "type": "integer"
+          },
+          "remaining": {
+            "type": "integer"
+          },
+          "period_end": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "overage_pages": {
+            "type": "integer"
+          }
+        }
+      },
+      "ApiKey": {
+        "type": "object",
+        "required": [
+          "id",
+          "prefix",
+          "created_at",
+          "revoked_at"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "prefix": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "revoked_at": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "CreateApiKeyResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ApiKey"
+          },
+          {
+            "type": "object",
+            "required": [
+              "secret"
+            ],
+            "properties": {
+              "secret": {
+                "type": "string"
+              }
+            }
+          }
+        ]
+      },
+      "ApiKeyListResponse": {
+        "type": "object",
+        "required": [
+          "items"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ApiKey"
+            }
+          }
+        }
+      },
+      "CheckoutRequest": {
+        "type": "object",
+        "required": [
+          "plan"
+        ],
+        "properties": {
+          "plan": {
+            "type": "string",
+            "enum": [
+              "starter",
+              "pro"
+            ]
+          }
+        }
+      },
+      "CheckoutResponse": {
+        "type": "object",
+        "required": [
+          "url"
+        ],
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri"
+          }
+        }
+      },
+      "PortalResponse": {
+        "type": "object",
+        "required": [
+          "url"
+        ],
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri"
+          }
+        }
+      },
+      "CrawlsListResponse": {
+        "type": "object",
+        "required": [
+          "items",
+          "next_cursor"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CrawlResponse"
+            }
+          },
+          "next_cursor": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "Problem": {
+        "type": "object",
+        "required": [
+          "type",
+          "title",
+          "status"
+        ],
+        "properties": {
+          "type": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "status": {
+            "type": "integer"
+          },
+          "detail": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "description": "Crawl key (lc_live_…) for /crawls, or Cognito JWT for /account and /billing."
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "crawls",
+      "description": "Create, poll, and read crawls"
+    },
+    {
+      "name": "account",
+      "description": "Console account, usage, and API keys"
+    },
+    {
+      "name": "billing",
+      "description": "Stripe Checkout and Customer Portal"
+    }
+  ],
+  "security": [
+    {
+      "BearerAuth": []
+    }
+  ]
+}

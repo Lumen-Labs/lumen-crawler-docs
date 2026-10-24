@@ -1,0 +1,32 @@
+---
+title: Docs MCP
+description: Connect coding agents to Lumen Crawler documentation over Streamable HTTP.
+---
+
+This is the **documentation** MCP — search and fetch public docs as markdown. It does not create crawls. Crawl HTTP is documented in the [quickstart](/v2/quickstart).
+
+**Endpoint:** `https://docs.crawler.lumen-labs.ai/docs/mcp`  
+**Discovery:** [/docs/.well-known/mcp.json](/.well-known/mcp.json)  
+**Machine index:** [/docs/llms.txt](/llms.txt) · append `.md` to any docs URL for markdown
+
+## Tools
+
+| Tool | Purpose |
+| --- | --- |
+| `search_docs` | Full-text search |
+| `list_sections` | List published pages |
+| `get_page` | Fetch a page as markdown |
+| `get_code_example` | Extract the first (or language-matched) fenced code block |
+
+## Connect
+
+Copy the JSON from [Copy-paste prompts](/v2/prompts). No crawl API key is required.
+
+## Agent workflow
+
+1. Start from [/docs/llms.txt](/llms.txt) or `list_sections`.
+2. `get_page` with a path like `/v2/quickstart`.
+3. For API calls: POST **202** + `id`; poll GET until a terminal status; **404** means unknown crawl, not pending.
+4. Optional skill: [/docs/skill.md](/skill.md)
+
+Local docs server: `http://localhost:3001/docs/mcp` after `npm run dev`.

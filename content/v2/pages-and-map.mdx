@@ -1,0 +1,43 @@
+---
+title: Pages and map
+description: Paginated page records, optional Markdown, and the in-universe graph.
+---
+
+## Pages
+
+```bash
+curl "https://crawler.lumen-labs.ai/v1/crawls/$ID/pages?include=markdown&limit=50" \
+  -H "Authorization: Bearer $LUMEN_CRAWLER_KEY"
+```
+
+`include` is a comma-separated list: `markdown`, `cleaned`. Omit it to get metadata only.
+
+Each item includes `url`, `canonical_url`, `title`, `status_code`, `ok`, `fetched_at`, `content_hash`, and `extraction` (`main`, `empty`, `skipped_robots`, `failed`). `ok` is HTTP 200–399.
+
+### Pagination
+
+`limit` defaults to 50, max 100. `next_cursor` is the last item's `urlHash`. Pass it as `cursor` on the next request. When `next_cursor` is null, you have the last page.
+
+## Map
+
+```bash
+curl https://crawler.lumen-labs.ai/v1/crawls/$ID/map \
+  -H "Authorization: Bearer $LUMEN_CRAWLER_KEY"
+```
+
+The map is **in-universe only**:
+
+```json
+{
+  "nodes": [{ "url": "https://example.com/", "title": "Example", "status_code": 200 }],
+  "edges": [{ "from": "https://example.com/", "to": "https://example.com/about" }]
+}
+```
+
+Off-universe URLs are not nodes. See [doors](/v2/doors).
+
+<AgentNote>
+
+Do not expect `map.json` or `results.jsonl` files. Clients read JSON over HTTP. Results expire 30 days after write.
+
+</AgentNote>

@@ -1,0 +1,8 @@
+{
+  "title": "Agents",
+  "defaultOpen": true,
+  "pages": [
+    "[Copy-paste prompts](/v2/prompts)",
+    "[Docs MCP](/v2/docs-mcp)"
+  ]
+}

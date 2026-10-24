@@ -1,0 +1,61 @@
+---
+title: Account API
+description: Console account, usage, and API keys
+full: true
+_openapi:
+  preload:
+    - schemas/lumen-crawler.openapi.json
+  toc:
+    - depth: 2
+      title: Get Account
+      url: '#get-account'
+    - depth: 2
+      title: Get Usage
+      url: '#get-usage'
+    - depth: 2
+      title: List Api Keys
+      url: '#list-api-keys'
+    - depth: 2
+      title: Create Api Key
+      url: '#create-api-key'
+    - depth: 2
+      title: Revoke Api Key
+      url: '#revoke-api-key'
+  structuredData:
+    headings:
+      - content: Get Account
+        id: get-account
+      - content: Get Usage
+        id: get-usage
+      - content: List Api Keys
+        id: list-api-keys
+      - content: Create Api Key
+        id: create-api-key
+      - content: Revoke Api Key
+        id: revoke-api-key
+    contents:
+      - content: Return the authenticated console account.
+        heading: get-account
+      - content: Return monthly included-page usage for the account.
+        heading: get-usage
+      - content: List API key prefixes for the account. Secrets are never returned.
+        heading: list-api-keys
+      - content: Create an API key. The secret is present only on this response.
+        heading: create-api-key
+      - content: Revoke an API key. Later crawl calls with that secret return 401.
+        heading: revoke-api-key
+---
+
+{/* Generated from schemas\/lumen-crawler.openapi.json. Run npm run api:generate after syncing the schema. */}
+
+export default function Layout(props) {
+  const { APIPage, OpenAPIPage } = props.components ?? {};
+  // "APIPage" is the old name from v10, this allows both for backward compatibility
+  const Comp = OpenAPIPage ?? APIPage;
+  return (
+    <>
+      {props.children}
+      <Comp document="schemas/lumen-crawler.openapi.json" webhooks={[]} operations={[{"path":"/account","method":"get"},{"path":"/account/usage","method":"get"},{"path":"/account/keys","method":"get"},{"path":"/account/keys","method":"post"},{"path":"/account/keys/{id}","method":"delete"}]} showTitle showDescription />
+    </>
+  );
+}

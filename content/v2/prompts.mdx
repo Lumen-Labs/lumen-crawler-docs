@@ -1,0 +1,87 @@
+---
+title: Copy-paste prompts
+description: Cursor MCP config, Claude adapter JSON, and a paste-ready agent prompt for Lumen Crawler.
+---
+
+This page is for coding agents and the humans who configure them. The Docs MCP only reads this documentation. It does not start crawls. Crawl calls go to `https://crawler.lumen-labs.ai` with a console API key.
+
+## Cursor
+
+Add to `.cursor/mcp.json` (or Cursor Settings → MCP):
+
+```json
+{
+  "mcpServers": {
+    "lumen-crawler-docs": {
+      "url": "https://docs.crawler.lumen-labs.ai/docs/mcp"
+    }
+  }
+}
+```
+
+Local preview (docs app on port 3001):
+
+```json
+{
+  "mcpServers": {
+    "lumen-crawler-docs": {
+      "url": "http://localhost:3001/docs/mcp"
+    }
+  }
+}
+```
+
+## Claude Desktop / Claude Code
+
+If the client supports Streamable HTTP MCP, use the same URL. Otherwise:
+
+```json
+{
+  "mcpServers": {
+    "lumen-crawler-docs": {
+      "command": "npx",
+      "args": ["-y", "@pyroprompts/mcp-stdio-to-streamable-http-adapter"],
+      "env": {
+        "URI": "https://docs.crawler.lumen-labs.ai/docs/mcp",
+        "MCP_NAME": "lumen-crawler-docs"
+      }
+    }
+  }
+}
+```
+
+No API key is required for the Docs MCP.
+
+## Agent prompt
+
+Paste this into an agent that should call the crawl API:
+
+```
+You are integrating Lumen Crawler, a Playwright crawl task API.
+
+Docs: https://docs.crawler.lumen-labs.ai/docs/llms.txt
+OpenAPI: https://docs.crawler.lumen-labs.ai/docs/openapi.json
+API: https://crawler.lumen-labs.ai
+Console: https://app.lumen-labs.ai
+Docs MCP: search_docs, list_sections, get_page, get_code_example
+
+Rules:
+- Authenticate crawl calls with Authorization: Bearer <lc_live_ key from the console>. The secret is shown once.
+- POST /v1/crawls with a unique Idempotency-Key and JSON {"url":"...","max_pages":N}. Expect HTTP 202 and an id.
+- Poll GET /v1/crawls/{id} until status is completed, cancelled, or failed. There are no webhooks. 404 means unknown crawl, not pending.
+- Read Markdown with GET /v1/crawls/{id}/pages?include=markdown. Paginate using cursor = last item urlHash.
+- GET /map is in-universe only. GET /doors lists off-universe URLs and never includes bodies. To crawl another host, start a new crawl. follow_doors: true returns 422.
+- GET /cleaned is a second wait after crawl status. 409 cleanup_not_ready means wait. 404 means cleanup was skipped.
+- On 402 quota_exceeded, max_pages does not fit remaining included pages. Do not retry the same max_pages. Failed fetches and robots skips do not consume quota; pages_ok does.
+- On 401 unregistered_key, the Bearer token is not a registered console key.
+- Production is HTTPS-only. Private IPs and metadata hosts are blocked.
+- Results expire after 30 days. User-agent token for robots.txt is LumenCrawler.
+```
+
+Optional skill summary: [/docs/skill.md](/skill.md).
+
+## Related
+
+- [Docs MCP](/v2/docs-mcp)
+- [Quickstart](/v2/quickstart)
+- [FAQ](/v2/faq)

@@ -1,0 +1,14 @@
+---
+title: API reference
+description: Generated operation pages from the checked-in OpenAPI 3.1 snapshot.
+---
+
+The crawl API is served at `https://crawler.lumen-labs.ai`. Paths below are relative to `/v1`.
+
+- Machine contract: [/docs/openapi.json](/openapi.json)
+- [Crawls](/v2/reference/api/crawls) — create, poll, pages, map, doors, cleaned, cancel
+- [Account](/v2/reference/api/account) — profile, usage, API keys (console JWT)
+- [Billing](/v2/reference/api/billing) — Checkout and Customer Portal (console JWT)
+- [Errors](/v2/errors)
+
+Regenerate from the sibling `lumen-crawler2` contract with `npm run api:sync && npm run api:generate`.

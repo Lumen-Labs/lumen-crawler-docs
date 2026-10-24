@@ -1,0 +1,86 @@
+---
+title: Crawls API
+description: Create, poll, and read crawls
+full: true
+_openapi:
+  preload:
+    - schemas/lumen-crawler.openapi.json
+  toc:
+    - depth: 2
+      title: List Crawls
+      url: '#list-crawls'
+    - depth: 2
+      title: Create Crawl
+      url: '#create-crawl'
+    - depth: 2
+      title: Get Crawl
+      url: '#get-crawl'
+    - depth: 2
+      title: List Pages
+      url: '#list-pages'
+    - depth: 2
+      title: Get Map
+      url: '#get-map'
+    - depth: 2
+      title: List Doors
+      url: '#list-doors'
+    - depth: 2
+      title: Get Cleaned
+      url: '#get-cleaned'
+    - depth: 2
+      title: Cancel Crawl
+      url: '#cancel-crawl'
+  structuredData:
+    headings:
+      - content: List Crawls
+        id: list-crawls
+      - content: Create Crawl
+        id: create-crawl
+      - content: Get Crawl
+        id: get-crawl
+      - content: List Pages
+        id: list-pages
+      - content: Get Map
+        id: get-map
+      - content: List Doors
+        id: list-doors
+      - content: Get Cleaned
+        id: get-cleaned
+      - content: Cancel Crawl
+        id: cancel-crawl
+    contents:
+      - content: List crawls for the API key tenant, or for the account when a console
+          JWT is used.
+        heading: list-crawls
+      - content: Accept a crawl. Returns 202. Requires Idempotency-Key. follow_doors
+          true is 422.
+        heading: create-crawl
+      - content: Return crawl status, counts, config, cleanup, and stop_reason.
+        heading: get-crawl
+      - content: List page records. Pass include=markdown,cleaned for bodies. cursor is
+          the last urlHash.
+        heading: list-pages
+      - content: Return the in-universe node/edge graph. Doors are omitted.
+        heading: get-map
+      - content: List off-universe URLs discovered but not fetched. No bodies.
+        heading: list-doors
+      - content: Return the site-level cleaned JSON rollup. 409 while cleanup runs; 404
+          if skipped.
+        heading: get-cleaned
+      - content: Cancel a queued or running crawl. Finished crawls return 409.
+        heading: cancel-crawl
+---
+
+{/* Generated from schemas\/lumen-crawler.openapi.json. Run npm run api:generate after syncing the schema. */}
+
+export default function Layout(props) {
+  const { APIPage, OpenAPIPage } = props.components ?? {};
+  // "APIPage" is the old name from v10, this allows both for backward compatibility
+  const Comp = OpenAPIPage ?? APIPage;
+  return (
+    <>
+      {props.children}
+      <Comp document="schemas/lumen-crawler.openapi.json" webhooks={[]} operations={[{"path":"/crawls","method":"get"},{"path":"/crawls","method":"post"},{"path":"/crawls/{id}","method":"get"},{"path":"/crawls/{id}/pages","method":"get"},{"path":"/crawls/{id}/map","method":"get"},{"path":"/crawls/{id}/doors","method":"get"},{"path":"/crawls/{id}/cleaned","method":"get"},{"path":"/crawls/{id}/cancel","method":"post"}]} showTitle showDescription />
+    </>
+  );
+}

@@ -1,0 +1,30 @@
+---
+title: Limits
+description: Robots, SSRF, concurrency, retention, and v1 non-goals.
+---
+
+## Robots
+
+User-agent token: **`LumenCrawler`**. `robots.txt` 404/410 allows. Fetch errors or HTTP 5xx **fail closed for 5 minutes**. Crawl-delay for `LumenCrawler` or `*` is honored with a **1s** floor. Per-host concurrency is **2**.
+
+Disallowed URLs are stored as pages with `extraction: skipped_robots` and `ok: false`. They do not consume quota.
+
+The crawler also seeds `/{origin}/sitemap.xml` (indexes followed, in-universe only). Sitemap failure is ignored.
+
+## SSRF
+
+Blocked: `file:`/`data:`, localhost, metadata hosts, RFC1918, link-local, CGNAT `100.64/10`, IPv6 ULA/link-local. DNS is resolved and re-checked. Redirect finals are re-asserted after Playwright navigation.
+
+Production: `allowPrivate: false`, `allowHttp: false` (HTTPS only). `http://` seeds fail.
+
+## Rendering
+
+Chromium, `waitUntil: domcontentloaded`, 15s goto timeout, then up to 5s waiting for `article, main, #content, body`. Image, media, and font requests are aborted. The browser is recycled every 100 pages. Main content is Readability then Turndown+GFM. Empty main is `extraction: empty`, not a hang.
+
+## Retention
+
+Page JSON, cleaned JSON, and related crawl data expire **30 days** after write.
+
+## v1 non-goals
+
+Follow doors, cookies or extra headers, webhooks/SSE, stealth/proxies, and search are not supported.

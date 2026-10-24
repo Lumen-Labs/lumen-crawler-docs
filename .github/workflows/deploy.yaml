@@ -1,0 +1,92 @@
+name: Deploy documentation
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: lumen-crawler-docs-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: github.repository == 'Lumen-Labs/lumen-crawler-docs'
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: https://docs.crawler.lumen-labs.ai/docs
+
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      - name: Use Node.js 22
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Validate documentation
+        run: npm run docs:check
+
+      - name: Validate public repository contents
+        run: npm run public:check
+
+      - name: Audit dependencies
+        run: npm audit --audit-level=high
+
+      - name: Build production site
+        run: npm run build
+        env:
+          NEXT_PUBLIC_DOCS_ORIGIN: https://docs.crawler.lumen-labs.ai
+
+      - name: Package the runtime allowlist
+        run: tar -czf lumen-crawler-docs-release.tgz .next content public package.json package-lock.json ecosystem.config.js
+
+      - name: Upload the release artifact
+        uses: appleboy/scp-action@ff85246acaad7bdce478db94a363cd2bf7c90345 # v1.0.0
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          port: ${{ secrets.PORT }}
+          key: ${{ secrets.SSHKEY }}
+          source: lumen-crawler-docs-release.tgz
+          target: "/home/${{ secrets.USERNAME }}/lumen-crawler-docs/releases/${{ github.sha }}"
+
+      - name: Activate the release and restart PM2
+        uses: appleboy/ssh-action@0ff4204d59e8e51228ff73bce53f80d53301dee2 # v1.2.5
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          port: ${{ secrets.PORT }}
+          key: ${{ secrets.SSHKEY }}
+          script: |
+            set -eu
+            release="/home/${{ secrets.USERNAME }}/lumen-crawler-docs/releases/${{ github.sha }}"
+            cd "$release"
+            tar -xzf lumen-crawler-docs-release.tgz
+            rm lumen-crawler-docs-release.tgz
+            npm ci --omit=dev --ignore-scripts
+            ln -sfn "$release" "/home/${{ secrets.USERNAME }}/lumen-crawler-docs/current"
+            cd "/home/${{ secrets.USERNAME }}/lumen-crawler-docs/current"
+            pm2 delete lumen-crawler-docs >/dev/null 2>&1 || true
+            pm2 start ecosystem.config.js --only lumen-crawler-docs >/dev/null
+
+            for attempt in 1 2 3 4 5 6 7 8 9 10; do
+              if curl --fail --silent --show-error \
+                "http://127.0.0.1:3878/docs/v2/quickstart" >/dev/null; then
+                exit 0
+              fi
+              sleep 2
+            done
+
+            echo "The deployed documentation did not become healthy." >&2
+            pm2 logs lumen-crawler-docs --lines 50 --nostream >&2
+            exit 1

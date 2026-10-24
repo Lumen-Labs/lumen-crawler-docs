@@ -1,0 +1,72 @@
+---
+title: FAQ
+description: Keys, quota, robots, doors, polling, and retention — symptom, cause, fix.
+---
+
+## The API returns 401 unregistered_key
+
+**Cause:** The Bearer token is missing, revoked, or was never created in the console. Local `AUTH_MODE=open` is not the production API.
+
+**Fix:** Create a key at [https://app.lumen-labs.ai](https://app.lumen-labs.ai). Copy the `lc_live_…` secret once. Send it on every crawl call.
+
+## The API returns 402 quota_exceeded
+
+**Cause:** `max_pages` does not fit remaining included pages for this UTC month. Free is 100 pages. Paid plans hard-cap unless overage metering is on.
+
+**Fix:** Lower `max_pages`, wait until `period_end`, or upgrade. Do not retry the same `max_pages`. `plan_inactive` is a different 402: the account is past due or canceled.
+
+Quota is **not** charged for robots skips or failed fetches. Successful pages (`pages_ok`) count.
+
+## The crawl skipped pages with empty Markdown
+
+**Cause:** `extraction` is `skipped_robots` or `empty`. Robots.txt for `LumenCrawler` or `*` disallowed the URL, or main content was empty after Readability.
+
+**Fix:** Ask the site owner to allow `LumenCrawler`. Empty main is not retried automatically.
+
+## max_pages is 100 but I need more of this site
+
+**Cause:** Default `max_pages` is 100, cap 5000. Create also reserves `max_pages` against quota.
+
+**Fix:** Set `max_pages` within remaining quota. Free accounts cannot reserve more than remaining included pages.
+
+## How do I know the crawl finished?
+
+**Cause:** There are no webhooks or SSE.
+
+**Fix:** Poll `GET /v1/crawls/{id}` until `completed`, `cancelled`, or `failed`. Then poll `GET .../cleaned` if you need the rollup (`409` means wait).
+
+## Production rejected an http:// seed
+
+**Cause:** Production is HTTPS-only. Private IPs, localhost, and cloud metadata hosts are blocked (SSRF fail-closed).
+
+**Fix:** Use a public `https://` URL.
+
+## Off-site links were not crawled
+
+**Cause:** They are [doors](/v2/doors). `follow_doors: true` is **422**.
+
+**Fix:** Start a new crawl on that host, or add its eTLD+1 to `allowed_domains` before create.
+
+## Replay returned 409 idempotency_conflict
+
+**Cause:** Same `Idempotency-Key`, different JSON body.
+
+**Fix:** Use a new key for a new crawl. Reuse the key only with the identical body.
+
+## Cancel returned 409
+
+**Cause:** The crawl is already `completed` or `failed`.
+
+**Fix:** Read the current status. Cancel only queued or running crawls.
+
+## Yesterday's crawl is gone
+
+**Cause:** Results expire **30 days** after write.
+
+**Fix:** Recreate the crawl. There is no archive beyond TTL.
+
+## Can I send cookies or extra headers?
+
+**Cause:** v1 does not support authenticated-target crawls, extra headers, stealth, or proxies.
+
+**Fix:** Crawl public pages only.

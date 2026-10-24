@@ -1,0 +1,42 @@
+---
+title: Errors
+description: RFC 7807 problem+json types returned by the crawl API.
+---
+
+Errors use `Content-Type: application/problem+json`:
+
+```json
+{
+  "type": "https://lumen.invalid/errors/quota_exceeded",
+  "title": "Quota exceeded",
+  "status": 402,
+  "detail": "max_pages does not fit remaining included pages"
+}
+```
+
+`type` URLs are identifiers, not human docs pages. Match on the code suffix.
+
+| Code | HTTP | When |
+| --- | --- | --- |
+| `unauthorized` | 401 | Missing or invalid Bearer or JWT |
+| `unregistered_key` | 401 | Production key not in the ledger |
+| `quota_exceeded` | 402 | `max_pages` does not fit remaining included pages |
+| `plan_inactive` | 402 | Account `past_due` or `canceled` |
+| `invalid_url` | 400 | Bad JSON, unparseable URL, or bad `include` |
+| `invalid_domain` | 400 | `allowed_domains` is not eTLD+1 |
+| `ssrf_blocked` | 400 | Private, metadata, or non-https in production |
+| `missing_idempotency_key` | 400 | POST create without the header |
+| `follow_doors_unsupported` | 422 | `follow_doors: true` |
+| `idempotency_conflict` | 409 | Same key, different body |
+| `conflict` | 409 | Cancel of a finished crawl |
+| `cleanup_not_ready` | 409 | GET cleaned while cleanup is queued or running |
+| `cleanup_unavailable` | 404 | Cleanup skipped, failed, or missing |
+| `not_found` | 404 | Unknown crawl, key, or billing customer |
+
+Foreign crawl ids return **404**, never 403.
+
+<AgentNote>
+
+Treat 402 as a quota or plan problem, not a retryable 5xx. Treat 409 `cleanup_not_ready` as wait. Treat 409 `idempotency_conflict` as a client bug: new body needs a new Idempotency-Key.
+
+</AgentNote>

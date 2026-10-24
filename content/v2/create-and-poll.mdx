@@ -1,0 +1,68 @@
+---
+title: Create and poll
+description: POST returns 202. Poll GET until a terminal status. Cancel stops new fetches.
+---
+
+## Create
+
+```json
+{
+  "url": "https://example.com",
+  "allowed_domains": [],
+  "max_pages": 100,
+  "follow_doors": false,
+  "cleanup": true
+}
+```
+
+| Field | Default | Notes |
+| --- | --- | --- |
+| `url` | required | Public `https` URL in production |
+| `allowed_domains` | `[]` | Extra eTLD+1 hosts, max 20 |
+| `max_pages` | `100` | Min 1, cap 5000. Also reserved against monthly quota |
+| `follow_doors` | `false` | `true` returns **422** `follow_doors_unsupported` |
+| `cleanup` | `true` | Site and per-page cleaned JSON after the crawl |
+
+Headers: `Authorization: Bearer <key>`, `Idempotency-Key` (required), `Content-Type: application/json`.
+
+The response is a [Crawl object](/v2/reference/api/crawls) with `status: queued` and HTTP **202**.
+
+<AgentNote>
+
+Reuse the same Idempotency-Key and body to safely retry create. Changing the body with the same key is **409** `idempotency_conflict`. Missing the header is **400** `missing_idempotency_key`.
+
+</AgentNote>
+
+## Poll
+
+```bash
+curl https://crawler.lumen-labs.ai/v1/crawls/$ID \
+  -H "Authorization: Bearer $LUMEN_CRAWLER_KEY"
+```
+
+| `status` | Meaning |
+| --- | --- |
+| `queued` | Accepted, not yet fetching |
+| `running` | Workers are fetching |
+| `completed` | Terminal success (may still be cleaning up) |
+| `cancelled` | Terminal, stop requested |
+| `failed` | Terminal, usually a seed failure with zero pages |
+
+`counts` includes `pages`, `pages_ok`, `pages_failed`, `queued`, `in_flight`, `doors`, `edges`. Billing uses `pages_ok` (HTTP 2xx/3xx), not `pages`.
+
+`stop_reason` is `cancelled`, `max_pages`, `exhausted`, `seed_failed`, or `quota_exhausted`.
+
+A crawl you did not create returns **404**, never 403.
+
+## List
+
+`GET /v1/crawls?limit=20` with optional `cursor`. Max `limit` 100. The API key lists crawls for that key's tenant. The console JWT lists by account.
+
+## Cancel
+
+```bash
+curl -X POST https://crawler.lumen-labs.ai/v1/crawls/$ID/cancel \
+  -H "Authorization: Bearer $LUMEN_CRAWLER_KEY"
+```
+
+Queued crawls become `cancelled` immediately. Running crawls set `cancelRequested` and stop on the next worker loop. Already `completed` or `failed` crawls return **409** `conflict`.

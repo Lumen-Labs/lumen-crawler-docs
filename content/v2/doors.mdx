@@ -1,0 +1,33 @@
+---
+title: Doors and universe
+description: The crawl stays on the seed eTLD+1 plus allowlisted hosts. Off-universe links are doors.
+---
+
+## Universe
+
+Universe = eTLD+1 of the seed URL ∪ `allowed_domains` (each an eTLD+1 host, max 20). In-universe `http(s)` links are followed. Hash-only, `mailto:`, and `javascript:` links are dropped.
+
+To include `docs.example.com` and `blog.example.net` from a seed on `www.example.com`, pass `"allowed_domains": ["example.net"]`. `example.com` is already in universe from the seed.
+
+Invalid allowlist values return **400** `invalid_domain`.
+
+## Doors
+
+An off-universe `http(s)` link is a **door**. The crawler records `url`, `host`, `source_url`, and a hit `count`. It never fetches the door.
+
+```bash
+curl https://crawler.lumen-labs.ai/v1/crawls/$ID/doors \
+  -H "Authorization: Bearer $LUMEN_CRAWLER_KEY"
+```
+
+Door records have no Markdown and no cleaned JSON. `next_cursor` is currently always `null`.
+
+## follow_doors
+
+`follow_doors: true` returns **422** `follow_doors_unsupported`. To enter a door host, start a **new** crawl with that URL as the seed (and add it to `allowed_domains` on a parent site if you want both in one universe).
+
+<AgentNote>
+
+Never treat doors as crawled pages. If the user needs another host, POST a new crawl. Do not set `follow_doors` to true.
+
+</AgentNote>

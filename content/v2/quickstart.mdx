@@ -1,0 +1,62 @@
+---
+title: Quickstart
+description: Create a key, start a crawl, poll until it finishes, and read Markdown.
+---
+
+You need a console account and one API key. Crawls run against `https://crawler.lumen-labs.ai`.
+
+## 1. Create a key
+
+1. Sign up at [https://app.lumen-labs.ai/signup](https://app.lumen-labs.ai/signup).
+2. Open the console and create an API key.
+3. Copy the secret once. It starts with `lc_live_`. Store it as `LUMEN_CRAWLER_KEY`.
+
+The console uses a Cognito email and password. Crawl requests use the API key, not the console session.
+
+## 2. Start a crawl
+
+`POST /v1/crawls` returns **202** immediately. `Idempotency-Key` is required.
+
+```bash
+curl -X POST https://crawler.lumen-labs.ai/v1/crawls \
+  -H "Authorization: Bearer $LUMEN_CRAWLER_KEY" \
+  -H "Idempotency-Key: $(uuidgen)" \
+  -H "Content-Type: application/json" \
+  -d '{"url":"https://example.com","max_pages":50}'
+```
+
+Save the `id` from the body. Replaying the same key and body returns the same 202. A different body with the same key returns **409** `idempotency_conflict`.
+
+## 3. Poll until terminal
+
+Statuses: `queued`, `running`, `completed`, `cancelled`, `failed`. There are no webhooks.
+
+```bash
+curl https://crawler.lumen-labs.ai/v1/crawls/$ID \
+  -H "Authorization: Bearer $LUMEN_CRAWLER_KEY"
+```
+
+Stop polling when `status` is `completed`, `cancelled`, or `failed`. `stop_reason` may be `max_pages`, `exhausted`, `cancelled`, `seed_failed`, or `quota_exhausted`.
+
+## 4. Read Markdown
+
+Bodies are omitted unless you ask. Paginate with `cursor` set to the last item `urlHash`. Default `limit` is 50, max 100.
+
+```bash
+curl "https://crawler.lumen-labs.ai/v1/crawls/$ID/pages?include=markdown&limit=50" \
+  -H "Authorization: Bearer $LUMEN_CRAWLER_KEY"
+```
+
+Then pull the [map](/v2/pages-and-map), [doors](/v2/doors), and [cleaned JSON](/v2/cleanup) if you need them.
+
+<AgentNote>
+
+If the response is **402** `quota_exceeded`, `max_pages` does not fit remaining included pages. Check [usage](/v2/quota). Do not retry the same `max_pages`. **401** `unregistered_key` means the Bearer token is not a console-issued key.
+
+</AgentNote>
+
+## Next
+
+- [Create and poll](/v2/create-and-poll) — cancel, list, idempotency
+- [Copy-paste prompts](/v2/prompts) — drop-in agent prompt
+- [FAQ](/v2/faq)

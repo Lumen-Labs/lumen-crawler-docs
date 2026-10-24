@@ -1,0 +1,35 @@
+---
+title: Installation
+description: Create a console account and an API key. No SDK install is required.
+---
+
+Lumen Crawler is an HTTP API. You do not install a client. Use curl, fetch, or generated OpenAPI tools.
+
+## Console
+
+1. Open [https://app.lumen-labs.ai/signup](https://app.lumen-labs.ai/signup).
+2. Register with email and password (minimum 12 characters, mixed case, and a digit).
+3. Verify the email, then sign in.
+
+The console shows monthly usage, API keys, recent crawls, and Stripe Checkout for Starter and Pro.
+
+## API keys
+
+Keys authenticate crawl endpoints. Create them under **API keys** in the console.
+
+- The secret is shown **once**. Prefix `lc_live_`.
+- Send `Authorization: Bearer <secret>` on every crawl call.
+- Revoking a key makes later crawl calls return **401** `unregistered_key`.
+- The prefix stored in the console is the first 12 characters, not the secret.
+
+Account and billing routes use the Cognito JWT from the console session, not the crawl key. `GET /v1/crawls` also accepts that JWT so the console can list crawls.
+
+## Local development
+
+The public API is production. A local API from the `lumen-crawler2` source repository can run with `AUTH_MODE=open` and accepts any Bearer token. That mode is for engine tests, not for the hosted product.
+
+## Related
+
+- [Auth and keys](/v2/auth)
+- [Plans and quota](/v2/quota)
+- [Quickstart](/v2/quickstart)

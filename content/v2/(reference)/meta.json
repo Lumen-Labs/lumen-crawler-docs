@@ -1,0 +1,11 @@
+{
+  "title": "Reference",
+  "defaultOpen": true,
+  "pages": [
+    "[API reference](/v2/reference)",
+    "[Crawls API](/v2/reference/api/crawls)",
+    "[Account API](/v2/reference/api/account)",
+    "[Billing API](/v2/reference/api/billing)",
+    "[Errors](/v2/errors)"
+  ]
+}

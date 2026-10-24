@@ -1,0 +1,10 @@
+{
+  "title": "Operate",
+  "defaultOpen": true,
+  "pages": [
+    "[Auth and keys](/v2/auth)",
+    "[Plans and quota](/v2/quota)",
+    "[FAQ](/v2/faq)",
+    "[Limits](/v2/limits)"
+  ]
+}

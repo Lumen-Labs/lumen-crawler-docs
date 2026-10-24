@@ -1,0 +1,26 @@
+---
+title: Auth and keys
+description: Bearer API keys for crawls. Cognito JWT for account and billing.
+---
+
+## Crawl plane
+
+Every `/v1/crawls*` request (except the console list fallback) needs:
+
+```
+Authorization: Bearer lc_live_…
+```
+
+Production `AUTH_MODE` is `registered`. Unknown or revoked keys return **401** `unregistered_key`. Missing or malformed Bearer returns **401** `unauthorized`.
+
+Keys are created in the [console](https://app.lumen-labs.ai). Lookup is SHA-256 of the full secret. Only a 12-character prefix is stored for display.
+
+## Account plane
+
+`/v1/account*` and `/v1/billing*` use the Cognito ID token from the console session (`Authorization: Bearer <jwt>`).
+
+`GET /v1/crawls` accepts either a crawl key or that JWT so the console can list crawls for the account.
+
+## CORS
+
+The API allows `Authorization`, `Content-Type`, and `Idempotency-Key` from `https://app.lumen-labs.ai` and `http://localhost:3000`.

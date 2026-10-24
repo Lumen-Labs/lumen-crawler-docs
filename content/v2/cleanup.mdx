@@ -1,0 +1,40 @@
+---
+title: Cleanup JSON
+description: Per-page and site-level typed JSON after the crawl. Default on. Second wait after status.
+---
+
+Cleanup runs after fetches when `cleanup` is true (the default). It classifies main content versus chrome and builds a site rollup (areas, headings).
+
+Crawl `status` can be `completed` while `cleanup.status` is still `pending` or `running`.
+
+## Per-page cleaned
+
+```bash
+curl "https://crawler.lumen-labs.ai/v1/crawls/$ID/pages?include=cleaned" \
+  -H "Authorization: Bearer $LUMEN_CRAWLER_KEY"
+```
+
+Combine with markdown: `include=markdown,cleaned`.
+
+## Site rollup
+
+```bash
+curl https://crawler.lumen-labs.ai/v1/crawls/$ID/cleaned \
+  -H "Authorization: Bearer $LUMEN_CRAWLER_KEY"
+```
+
+| HTTP | `type` | Meaning |
+| --- | --- | --- |
+| 200 | — | Rollup ready |
+| 409 | `cleanup_not_ready` | Cleanup still queued or running |
+| 404 | `cleanup_unavailable` | Cleanup skipped, failed, or missing |
+
+`cleanup` on the crawl object has `status` (`skipped`, `pending`, `running`, `completed`, `failed`), `model`, `pages_cleaned`, and `error`.
+
+Set `"cleanup": false` on create to skip. Then `/cleaned` is 404.
+
+<AgentNote>
+
+After crawl `status` is terminal, keep polling GET `/cleaned` until 200 or 404. Treat 409 as wait, not failure.
+
+</AgentNote>

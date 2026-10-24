@@ -1,0 +1,41 @@
+---
+title: Billing API
+description: Stripe Checkout and Customer Portal
+full: true
+_openapi:
+  preload:
+    - schemas/lumen-crawler.openapi.json
+  toc:
+    - depth: 2
+      title: Create Checkout
+      url: '#create-checkout'
+    - depth: 2
+      title: Create Portal
+      url: '#create-portal'
+  structuredData:
+    headings:
+      - content: Create Checkout
+        id: create-checkout
+      - content: Create Portal
+        id: create-portal
+    contents:
+      - content: Create a Stripe Checkout session for Starter or Pro.
+        heading: create-checkout
+      - content: Create a Stripe Customer Portal session. 404 if the account has no
+          customer.
+        heading: create-portal
+---
+
+{/* Generated from schemas\/lumen-crawler.openapi.json. Run npm run api:generate after syncing the schema. */}
+
+export default function Layout(props) {
+  const { APIPage, OpenAPIPage } = props.components ?? {};
+  // "APIPage" is the old name from v10, this allows both for backward compatibility
+  const Comp = OpenAPIPage ?? APIPage;
+  return (
+    <>
+      {props.children}
+      <Comp document="schemas/lumen-crawler.openapi.json" webhooks={[]} operations={[{"path":"/billing/checkout","method":"post"},{"path":"/billing/portal","method":"post"}]} showTitle showDescription />
+    </>
+  );
+}

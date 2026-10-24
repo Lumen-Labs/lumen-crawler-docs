@@ -1,0 +1,10 @@
+{
+  "title": "Guides",
+  "defaultOpen": true,
+  "pages": [
+    "[Create and poll](/v2/create-and-poll)",
+    "[Pages and map](/v2/pages-and-map)",
+    "[Doors and universe](/v2/doors)",
+    "[Cleanup JSON](/v2/cleanup)"
+  ]
+}

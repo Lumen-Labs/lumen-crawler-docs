@@ -1,0 +1,42 @@
+---
+title: Lumen Crawler
+description: Browser-rendered crawls. Clean Markdown. Structured JSON. A task API for agents.
+---
+
+Lumen Crawler is a task API: you point it at a URL, it renders pages in headless Chromium, and you pull Markdown, a site map, doors, and optional cleaned JSON.
+
+**Hosts**
+
+| Surface | URL |
+| --- | --- |
+| Crawl API | [https://crawler.lumen-labs.ai](https://crawler.lumen-labs.ai) |
+| Console | [https://app.lumen-labs.ai](https://app.lumen-labs.ai) |
+| Docs | this site |
+| Docs MCP | [/docs/mcp](/mcp) |
+
+## What you get
+
+- Playwright loads each page the way a browser does, so client-side content is present.
+- Robots rules for `LumenCrawler` fail closed. Private and metadata targets are blocked at fetch time.
+- Main content per page as Markdown, plus an in-universe map.
+- Typed JSON on request after cleanup finishes.
+
+## The loop
+
+1. Create an API key in the [console](https://app.lumen-labs.ai). The secret is shown once.
+2. `POST /v1/crawls` with `Authorization: Bearer lc_live_…` and an `Idempotency-Key`. The API returns **202**.
+3. Poll `GET /v1/crawls/{id}` until `status` is `completed`, `cancelled`, or `failed`.
+4. Read `GET /v1/crawls/{id}/pages?include=markdown`.
+
+<AgentNote>
+
+Create with a unique Idempotency-Key. Poll until a terminal status. Off-universe links are doors — start a new crawl to enter them. On 402, do not retry the same `max_pages`.
+
+</AgentNote>
+
+## Start
+
+- [Quickstart](/v2/quickstart) — one crawl from a key to Markdown
+- [Copy-paste prompts](/v2/prompts) — Cursor MCP JSON and an agent prompt
+- [FAQ](/v2/faq) — keys, quota, robots, doors
+- [OpenAPI](/openapi.json) — machine-readable contract
