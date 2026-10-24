@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: production
-      url: https://docs.crawler.lumen-labs.ai/docs
+      url: https://crawler-docs.lumen-labs.ai/docs
 
     steps:
       - name: Check out the repository
@@ -45,10 +45,16 @@ jobs:
       - name: Build production site
         run: npm run build
         env:
-          NEXT_PUBLIC_DOCS_ORIGIN: https://docs.crawler.lumen-labs.ai
+          NEXT_PUBLIC_DOCS_ORIGIN: https://crawler-docs.lumen-labs.ai
 
       - name: Package the runtime allowlist
-        run: tar -czf lumen-crawler-docs-release.tgz .next content public package.json package-lock.json ecosystem.config.js
+        run: |
+          tar -czf lumen-crawler-docs-release.tgz \
+            --exclude '.next/cache' \
+            --exclude '.next/dev' \
+            --exclude '.next/diagnostics' \
+            .next content public .source package.json package-lock.json \
+            ecosystem.config.js next.config.mjs source.config.ts postcss.config.mjs tsconfig.json
 
       - name: Upload the release artifact
         uses: appleboy/scp-action@ff85246acaad7bdce478db94a363cd2bf7c90345 # v1.0.0
@@ -73,7 +79,7 @@ jobs:
             cd "$release"
             tar -xzf lumen-crawler-docs-release.tgz
             rm lumen-crawler-docs-release.tgz
-            npm ci --omit=dev --ignore-scripts
+            npm_config_engine_strict=false npm ci --omit=dev --ignore-scripts
             ln -sfn "$release" "/home/${{ secrets.USERNAME }}/lumen-crawler-docs/current"
             cd "/home/${{ secrets.USERNAME }}/lumen-crawler-docs/current"
             pm2 delete lumen-crawler-docs >/dev/null 2>&1 || true

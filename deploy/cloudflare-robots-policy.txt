@@ -25,4 +25,4 @@ Disallow: /
 User-agent: *
 Allow: /
 
-Sitemap: https://docs.crawler.lumen-labs.ai/docs/sitemap.xml
+Sitemap: https://crawler-docs.lumen-labs.ai/docs/sitemap.xml

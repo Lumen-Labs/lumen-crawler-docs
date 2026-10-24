@@ -13,7 +13,7 @@ Add to `.cursor/mcp.json` (or Cursor Settings → MCP):
 {
   "mcpServers": {
     "lumen-crawler-docs": {
-      "url": "https://docs.crawler.lumen-labs.ai/docs/mcp"
+      "url": "https://crawler-docs.lumen-labs.ai/docs/mcp"
     }
   }
 }
@@ -42,7 +42,7 @@ If the client supports Streamable HTTP MCP, use the same URL. Otherwise:
       "command": "npx",
       "args": ["-y", "@pyroprompts/mcp-stdio-to-streamable-http-adapter"],
       "env": {
-        "URI": "https://docs.crawler.lumen-labs.ai/docs/mcp",
+        "URI": "https://crawler-docs.lumen-labs.ai/docs/mcp",
         "MCP_NAME": "lumen-crawler-docs"
       }
     }
@@ -59,10 +59,10 @@ Paste this into an agent that should call the crawl API:
 ```
 You are integrating Lumen Crawler, a Playwright crawl task API.
 
-Docs: https://docs.crawler.lumen-labs.ai/docs/llms.txt
-OpenAPI: https://docs.crawler.lumen-labs.ai/docs/openapi.json
+Docs: https://crawler-docs.lumen-labs.ai/docs/llms.txt
+OpenAPI: https://crawler-docs.lumen-labs.ai/docs/openapi.json
 API: https://crawler.lumen-labs.ai
-Console: https://app.lumen-labs.ai
+Console: https://crawlapp.lumen-labs.ai
 Docs MCP: search_docs, list_sections, get_page, get_code_example
 
 Rules:

@@ -1,10 +1,10 @@
 export const DOCS_ORIGIN =
-  process.env.NEXT_PUBLIC_DOCS_ORIGIN ?? "https://docs.crawler.lumen-labs.ai";
+  process.env.NEXT_PUBLIC_DOCS_ORIGIN ?? "https://crawler-docs.lumen-labs.ai";
 
 export const DOCS_BASE = `${DOCS_ORIGIN}/docs`;
 
 export const API_ORIGIN = "https://crawler.lumen-labs.ai";
-export const APP_ORIGIN = "https://app.lumen-labs.ai";
+export const APP_ORIGIN = "https://crawlapp.lumen-labs.ai";
 
 export function absoluteDocsUrl(path: string): string {
   const normalized = path.startsWith("/") ? path : `/${path}`;

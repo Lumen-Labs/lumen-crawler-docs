@@ -1,31 +1,36 @@
 # Production host
 
-Public origin: `https://docs.crawler.lumen-labs.ai` with Next `basePath` `/docs`.
+Public origin: `https://crawler-docs.lumen-labs.ai` with Next `basePath` `/docs`.
 
 The docs app is a Node server (MCP and `llms.txt` read `content/` at request time). Do not attach this site to `crawler.lumen-labs.ai` (API Gateway).
 
+`docs.crawler.lumen-labs.ai` is not used. Cloudflare Universal SSL covers `*.lumen-labs.ai` only, not nested `docs.crawler.lumen-labs.ai`.
+
 ## DNS
 
-Cloudflare zone `lumen-labs.ai` should have:
+Cloudflare zone `lumen-labs.ai`:
 
-- Type: A
-- Name: `docs.crawler`
-- Content: `217.160.52.62` (same origin as `brainapi.lumen-labs.ai`)
-- Proxy: DNS only until TLS and the vhost are confirmed
-
-The origin still needs a TLS vhost for `docs.crawler.lumen-labs.ai` and a PM2 process on port 3878. Until that vhost exists, the hostname will not serve this app.
+- Type: CNAME
+- Name: `crawler-docs`
+- Content: `f8498e64-f410-45b5-aec0-6aaa1d86768d.cfargotunnel.com`
+- Proxy: proxied
 
 ## Runtime
 
-PM2 app `lumen-crawler-docs` on port **3878**. Release tarball must include `.next`, `content`, `public`, `package.json`, `package-lock.json`, and `ecosystem.config.js`.
+On `217.160.52.62` as `chriscoder`:
+
+- PM2 app `lumen-crawler-docs` on port **3878**
+- PM2 app `lumen-crawler-docs-tunnel` (`cloudflared tunnel run`) to the remotely managed tunnel `lumen-crawler-docs`
+
+Release tarball must include `.next` (without `cache`/`dev`), `content`, `public`, `.source`, `package.json`, `package-lock.json`, `ecosystem.config.js`, and `next.config.mjs`. After extract, `pm2 delete` then `pm2 start ecosystem.config.js` from the new `current` directory so the cwd updates.
 
 Health check: `http://127.0.0.1:3878/docs/v2/quickstart`
 
-Public checks after DNS:
+Public checks:
 
-- `https://docs.crawler.lumen-labs.ai/docs/llms.txt`
-- `https://docs.crawler.lumen-labs.ai/docs/mcp`
-- `https://docs.crawler.lumen-labs.ai/docs/.well-known/mcp.json`
-- `https://docs.crawler.lumen-labs.ai/docs/v2/quickstart`
+- `https://crawler-docs.lumen-labs.ai/docs/llms.txt`
+- `https://crawler-docs.lumen-labs.ai/docs/mcp`
+- `https://crawler-docs.lumen-labs.ai/docs/.well-known/mcp.json`
+- `https://crawler-docs.lumen-labs.ai/docs/v2/quickstart`
 
-Deploy is manual (`workflow_dispatch`) until this host exists.
+Deploy is manual (`workflow_dispatch`) after GitHub `production` SSH secrets exist.

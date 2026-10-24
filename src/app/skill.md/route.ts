@@ -26,7 +26,7 @@ Do not crawl private IPs, metadata hosts, or authenticated sites. Do not set fol
 
 1. Discover pages via \`${DOCS_BASE}/llms.txt\` or MCP \`search_docs\` / \`list_sections\`.
 2. Fetch markdown with MCP \`get_page\` or by appending \`.md\` to a docs URL. Inspect \`${DOCS_BASE}/openapi.json\` before generating REST tools.
-3. Create API keys in the console at https://app.lumen-labs.ai. The secret is shown once and starts with \`lc_live_\`.
+3. Create API keys in the console at https://crawlapp.lumen-labs.ai. The secret is shown once and starts with \`lc_live_\`.
 4. POST https://crawler.lumen-labs.ai/v1/crawls with \`Authorization: Bearer <key>\` and a unique \`Idempotency-Key\`. Expect **202**.
 5. Poll GET /v1/crawls/{id} until status is \`completed\`, \`cancelled\`, or \`failed\`. 404 means unknown crawl, not still queued.
 6. Read bodies with GET /v1/crawls/{id}/pages?include=markdown. Paginate with \`cursor\` = last item \`urlHash\`.

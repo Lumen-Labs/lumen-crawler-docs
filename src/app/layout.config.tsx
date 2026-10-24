@@ -4,12 +4,12 @@ import { ThemeLogo } from "@/components/theme-logo";
 export const baseOptions: BaseLayoutProps = {
   nav: {
     title: (
-      <>
+      <span className="inline-flex items-center gap-2">
         <ThemeLogo />
-        <span className="font-[var(--font-outfit)] font-bold text-2xl">
+        <span className="whitespace-nowrap font-[var(--font-outfit)] text-lg font-bold leading-none">
           Lumen Crawler
         </span>
-      </>
+      </span>
     ),
     url: "/v2",
   },
@@ -17,7 +17,7 @@ export const baseOptions: BaseLayoutProps = {
   links: [
     {
       text: "Console",
-      url: "https://app.lumen-labs.ai",
+      url: "https://crawlapp.lumen-labs.ai",
       external: true,
     },
     {
@@ -37,7 +37,7 @@ export const docsSidebarBanner = (
   <div className="flex flex-col gap-2 my-3">
     <a
       className="py-3 px-4 rounded-lg border-[1.5px] flex items-center gap-2 hover:-translate-y-[1px] transition-all duration-300 bg-fd-secondary text-fd-secondary-foreground"
-      href="https://app.lumen-labs.ai"
+      href="https://crawlapp.lumen-labs.ai"
     >
       <p className="text-xs font-medium">Open the console</p>
     </a>

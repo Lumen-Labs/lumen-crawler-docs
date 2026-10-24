@@ -248,7 +248,7 @@ const mcpDiscovery = JSON.parse(
   await readFile(path.join(root, "public", ".well-known", "mcp.json"), "utf8"),
 );
 if (
-  mcpDiscovery.url !== "https://docs.crawler.lumen-labs.ai/docs/mcp" ||
+  mcpDiscovery.url !== "https://crawler-docs.lumen-labs.ai/docs/mcp" ||
   mcpDiscovery.transport !== "streamable-http"
 ) {
   errors.push("Docs MCP discovery must identify the Streamable HTTP docs endpoint");

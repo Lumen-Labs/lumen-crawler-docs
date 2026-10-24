@@ -7,7 +7,7 @@
 </p>
 
 <p align="center">
-  <a href="https://docs.crawler.lumen-labs.ai/docs">Read the documentation</a>
+  <a href="https://crawler-docs.lumen-labs.ai/docs">Read the documentation</a>
   ·
   <a href="CONTRIBUTING.md">Contribute</a>
   ·

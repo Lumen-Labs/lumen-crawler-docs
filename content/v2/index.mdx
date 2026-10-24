@@ -10,7 +10,7 @@ Lumen Crawler is a task API: you point it at a URL, it renders pages in headless
 | Surface | URL |
 | --- | --- |
 | Crawl API | [https://crawler.lumen-labs.ai](https://crawler.lumen-labs.ai) |
-| Console | [https://app.lumen-labs.ai](https://app.lumen-labs.ai) |
+| Console | [https://crawlapp.lumen-labs.ai](https://crawlapp.lumen-labs.ai) |
 | Docs | this site |
 | Docs MCP | [/docs/mcp](/mcp) |
 
@@ -23,7 +23,7 @@ Lumen Crawler is a task API: you point it at a URL, it renders pages in headless
 
 ## The loop
 
-1. Create an API key in the [console](https://app.lumen-labs.ai). The secret is shown once.
+1. Create an API key in the [console](https://crawlapp.lumen-labs.ai). The secret is shown once.
 2. `POST /v1/crawls` with `Authorization: Bearer lc_live_…` and an `Idempotency-Key`. The API returns **202**.
 3. Poll `GET /v1/crawls/{id}` until `status` is `completed`, `cancelled`, or `failed`.
 4. Read `GET /v1/crawls/{id}/pages?include=markdown`.

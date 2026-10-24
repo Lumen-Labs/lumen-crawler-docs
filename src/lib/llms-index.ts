@@ -19,7 +19,7 @@ export function buildRootLlmsTxt(): string {
 - [Quickstart](${markdownDocsUrl("/v2/quickstart")}): Create a key, start a crawl, poll, read Markdown
 - [Installation](${markdownDocsUrl("/v2/installation")}): Console account and API keys
 - [Lumen Crawler OpenAPI 3.1 specification](${DOCS_BASE}/openapi.json): Machine-readable REST contract
-- [Console](https://app.lumen-labs.ai): Usage, keys, billing
+- [Console](https://crawlapp.lumen-labs.ai): Usage, keys, billing
 - [Crawl API](https://crawler.lumen-labs.ai): Production host
 
 ## Task-shaped entry points

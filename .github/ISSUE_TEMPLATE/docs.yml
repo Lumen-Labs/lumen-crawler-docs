@@ -10,7 +10,7 @@ body:
     id: page
     attributes:
       label: Page or route
-      placeholder: https://docs.crawler.lumen-labs.ai/docs/v2/...
+      placeholder: https://crawler-docs.lumen-labs.ai/docs/v2/...
     validations:
       required: true
   - type: textarea
