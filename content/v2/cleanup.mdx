@@ -3,9 +3,11 @@ title: Cleanup JSON
 description: Per-page and site-level typed JSON after the crawl. Default on. Second wait after status.
 ---
 
-Cleanup runs after fetches when `cleanup` is true (the default). It classifies main content versus chrome and builds a site rollup (areas, headings).
+Cleanup runs after fetches when `cleanup` is true (the default). It classifies main content versus chrome and builds a site rollup keyed by heading ids.
 
 Crawl `status` can be `completed` while `cleanup.status` is still `pending` or `running`.
+
+Look up sections with `areas[].id`. Look up pages on the rollup with `pages[].url`. Bodies live on `GET /pages?include=cleaned`, not on `GET /cleaned`.
 
 ## Per-page cleaned
 
@@ -14,13 +16,93 @@ curl "https://crawler.lumen-labs.ai/v1/crawls/$ID/pages?include=cleaned" \
   -H "Authorization: Bearer $LUMEN_CRAWLER_KEY"
 ```
 
-Combine with markdown: `include=markdown,cleaned`.
+Combine with markdown: `include=markdown,cleaned`. Each item's `cleaned` object:
+
+```json
+{
+  "url": "https://example.com/about",
+  "canonical_url": "https://example.com/about",
+  "page_type": "contact",
+  "chrome": {
+    "navigation": ["Home", "Pricing"],
+    "footer": ["Privacy"],
+    "forms": [{ "name": "Contact", "fields": ["email"], "action": "/contact" }]
+  },
+  "content": {
+    "title": "About",
+    "headings": [{ "level": 1, "text": "About" }],
+    "core": "Widgets for teams.",
+    "paragraphs": ["Widgets for teams."]
+  },
+  "areas": [
+    {
+      "id": "about",
+      "heading": "About",
+      "category": "company",
+      "markdown": "Widgets for teams."
+    }
+  ],
+  "facts": {
+    "contacts": {
+      "emails": ["hello@example.com"],
+      "phones": ["+1-415-555-0100"],
+      "addresses": []
+    },
+    "ctas": ["Contact us"]
+  },
+  "model": "nvidia.nemotron-nano-3-30b",
+  "input_tokens": 76,
+  "output_tokens": 95
+}
+```
+
+| Key | Meaning |
+| --- | --- |
+| `url`, `canonical_url` | Fetched page |
+| `page_type` | `landing`, `article`, `docs`, `listing`, `contact`, `legal`, or `other` |
+| `chrome` | Nav, footer, forms stripped from main content |
+| `content` | Title, headings, chrome-filtered `core` and `paragraphs` |
+| `areas` | Heading sections. `id` is the lookup key |
+| `facts` | Contacts and CTAs |
+| `model`, `input_tokens`, `output_tokens` | Cleanup telemetry |
 
 ## Site rollup
 
 ```bash
 curl https://crawler.lumen-labs.ai/v1/crawls/$ID/cleaned \
   -H "Authorization: Bearer $LUMEN_CRAWLER_KEY"
+```
+
+```json
+{
+  "crawl_id": "01ARZ3NDEKTSV4RRFFQ69G5FAV",
+  "model": "nvidia.nemotron-nano-3-30b",
+  "site": {
+    "navigation": ["Home", "Pricing"],
+    "footer": ["Privacy"],
+    "contacts": {
+      "emails": ["hello@example.com"],
+      "phones": ["+1-415-555-0100"],
+      "addresses": []
+    }
+  },
+  "areas": [
+    {
+      "id": "about",
+      "heading": "About",
+      "category": "company",
+      "page_urls": ["https://example.com/about"]
+    }
+  ],
+  "pages": [
+    {
+      "url": "https://example.com/about",
+      "title": "About",
+      "page_type": "contact",
+      "area_ids": ["about"]
+    }
+  ]
+}
 ```
 
 | HTTP | `type` | Meaning |
@@ -33,8 +115,31 @@ curl https://crawler.lumen-labs.ai/v1/crawls/$ID/cleaned \
 
 Set `"cleanup": false` on create to skip. Then `/cleaned` is 404.
 
+## Lookup
+
+`areas[].id` is a heading-slug path: `intro` for lead-in text, `widget-docs/installation` for nested headings. Duplicate headings in document order get a suffix (`pricing`, `pricing-2`). Rollup `areas` are unique by `id`. Nested children of a suffixed heading keep that suffix in the path.
+
+`pages[].url` identifies a page on the rollup. `pages[].area_ids` lists the section ids on that page. `areas[].page_urls` lists pages that contain the section.
+
+The rollup has no Markdown bodies. Read `items[].cleaned.content.core` and `items[].cleaned.facts.contacts` from `GET /pages?include=cleaned`.
+
+Listed keys are the v1 contract ([OpenAPI](/openapi.json)). Extra keys may appear. Renaming a listed key is breaking.
+
+## Stability
+
+Same Markdown headings produce the same `areas[].id` values across recrawls.
+
+| Stable when headings are unchanged | May change across recrawls |
+| --- | --- |
+| Object keys | `page_type` |
+| `url`, `canonical_url` | `chrome` |
+| `areas[].id`, `heading`, `markdown` | `areas[].category` |
+| `content.title`, `content.headings` | `content.core`, `content.paragraphs` (chrome-filtered) |
+| Regex `emails` / `phones` | `facts.ctas`, `facts.contacts.addresses` |
+| `pages[].url` | `model`, token counts, `crawl_id` |
+
 <AgentNote>
 
-After crawl `status` is terminal, keep polling GET `/cleaned` until 200 or 404. Treat 409 as wait, not failure.
+After crawl `status` is terminal, keep polling GET `/cleaned` until 200 or 404. Treat 409 as wait, not failure. Look up sections by `areas[].id`. Page bodies are on GET `/pages?include=cleaned`. Do not use `page_type` or `category` as keys.
 
 </AgentNote>

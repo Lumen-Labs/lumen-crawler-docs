@@ -239,6 +239,11 @@
     "/crawls": {
       "get": {
         "operationId": "listCrawls",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "parameters": [
           {
             "in": "query",
@@ -276,15 +281,15 @@
         "description": "List crawls for the API key tenant, or for the account when a console JWT is used.",
         "tags": [
           "crawls"
-        ],
-        "security": [
-          {
-            "BearerAuth": []
-          }
         ]
       },
       "post": {
         "operationId": "createCrawl",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "parameters": [
           {
             "in": "header",
@@ -348,17 +353,17 @@
         "description": "Accept a crawl. Returns 202. Requires Idempotency-Key. follow_doors true is 422.",
         "tags": [
           "crawls"
-        ],
-        "security": [
-          {
-            "BearerAuth": []
-          }
         ]
       }
     },
     "/crawls/{id}": {
       "get": {
         "operationId": "getCrawl",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "parameters": [
           {
             "$ref": "#/components/parameters/CrawlId"
@@ -382,17 +387,17 @@
         "description": "Return crawl status, counts, config, cleanup, and stop_reason.",
         "tags": [
           "crawls"
-        ],
-        "security": [
-          {
-            "BearerAuth": []
-          }
         ]
       }
     },
     "/crawls/{id}/pages": {
       "get": {
         "operationId": "listPages",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "parameters": [
           {
             "$ref": "#/components/parameters/CrawlId"
@@ -402,7 +407,15 @@
             "name": "include",
             "schema": {
               "type": "string",
-              "description": "Comma-separated fields to include (markdown, cleaned)"
+              "description": "Comma-separated fields to include (markdown, cleaned). Body fields are capped at 5 items per page."
+            }
+          },
+          {
+            "in": "query",
+            "name": "url",
+            "schema": {
+              "type": "string",
+              "description": "Return only the page whose url or canonical_url matches"
             }
           },
           {
@@ -438,17 +451,17 @@
         "description": "List page records. Pass include=markdown,cleaned for bodies. cursor is the last urlHash.",
         "tags": [
           "crawls"
-        ],
-        "security": [
-          {
-            "BearerAuth": []
-          }
         ]
       }
     },
     "/crawls/{id}/map": {
       "get": {
         "operationId": "getMap",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "parameters": [
           {
             "$ref": "#/components/parameters/CrawlId"
@@ -469,17 +482,17 @@
         "description": "Return the in-universe node/edge graph. Doors are omitted.",
         "tags": [
           "crawls"
-        ],
-        "security": [
-          {
-            "BearerAuth": []
-          }
         ]
       }
     },
     "/crawls/{id}/doors": {
       "get": {
         "operationId": "listDoors",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "parameters": [
           {
             "$ref": "#/components/parameters/CrawlId"
@@ -500,17 +513,17 @@
         "description": "List off-universe URLs discovered but not fetched. No bodies.",
         "tags": [
           "crawls"
-        ],
-        "security": [
-          {
-            "BearerAuth": []
-          }
         ]
       }
     },
     "/crawls/{id}/cleaned": {
       "get": {
         "operationId": "getCleaned",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "parameters": [
           {
             "$ref": "#/components/parameters/CrawlId"
@@ -537,17 +550,17 @@
         "description": "Return the site-level cleaned JSON rollup. 409 while cleanup runs; 404 if skipped.",
         "tags": [
           "crawls"
-        ],
-        "security": [
-          {
-            "BearerAuth": []
-          }
         ]
       }
     },
     "/crawls/{id}/cancel": {
       "post": {
         "operationId": "cancelCrawl",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "parameters": [
           {
             "$ref": "#/components/parameters/CrawlId"
@@ -571,16 +584,18 @@
         "description": "Cancel a queued or running crawl. Finished crawls return 409.",
         "tags": [
           "crawls"
-        ],
-        "security": [
-          {
-            "BearerAuth": []
-          }
         ]
       }
     }
   },
   "components": {
+    "securitySchemes": {
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "description": "Crawl key (lc_live_…) for /crawls, or Cognito JWT for /account and /billing."
+      }
+    },
     "parameters": {
       "CrawlId": {
         "in": "path",
@@ -859,13 +874,350 @@
           }
         }
       },
+      "CleanedForm": {
+        "type": "object",
+        "required": [
+          "fields"
+        ],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "fields": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "action": {
+            "type": "string"
+          }
+        }
+      },
+      "CleanedHeading": {
+        "type": "object",
+        "required": [
+          "level",
+          "text"
+        ],
+        "properties": {
+          "level": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 6
+          },
+          "text": {
+            "type": "string"
+          }
+        }
+      },
+      "CleanedArea": {
+        "type": "object",
+        "required": [
+          "id",
+          "heading",
+          "category",
+          "markdown"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "heading": {
+            "type": "string"
+          },
+          "category": {
+            "type": "string"
+          },
+          "markdown": {
+            "type": "string"
+          }
+        }
+      },
+      "CleanedContacts": {
+        "type": "object",
+        "required": [
+          "emails",
+          "phones",
+          "addresses"
+        ],
+        "properties": {
+          "emails": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "phones": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "addresses": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "CleanedPageChrome": {
+        "type": "object",
+        "required": [
+          "navigation",
+          "footer",
+          "forms"
+        ],
+        "properties": {
+          "navigation": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "footer": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "forms": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CleanedForm"
+            }
+          }
+        }
+      },
+      "CleanedPageContent": {
+        "type": "object",
+        "required": [
+          "title",
+          "headings",
+          "core",
+          "paragraphs"
+        ],
+        "properties": {
+          "title": {
+            "type": "string",
+            "nullable": true
+          },
+          "headings": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CleanedHeading"
+            }
+          },
+          "core": {
+            "type": "string"
+          },
+          "paragraphs": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "CleanedPageFacts": {
+        "type": "object",
+        "required": [
+          "contacts",
+          "ctas"
+        ],
+        "properties": {
+          "contacts": {
+            "$ref": "#/components/schemas/CleanedContacts"
+          },
+          "ctas": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
       "CleanedPage": {
         "type": "object",
-        "additionalProperties": true
+        "required": [
+          "url",
+          "canonical_url",
+          "page_type",
+          "chrome",
+          "content",
+          "areas",
+          "facts",
+          "model",
+          "input_tokens",
+          "output_tokens"
+        ],
+        "properties": {
+          "url": {
+            "type": "string"
+          },
+          "canonical_url": {
+            "type": "string"
+          },
+          "page_type": {
+            "type": "string",
+            "enum": [
+              "landing",
+              "article",
+              "docs",
+              "listing",
+              "contact",
+              "legal",
+              "other"
+            ]
+          },
+          "chrome": {
+            "$ref": "#/components/schemas/CleanedPageChrome"
+          },
+          "content": {
+            "$ref": "#/components/schemas/CleanedPageContent"
+          },
+          "areas": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CleanedArea"
+            }
+          },
+          "facts": {
+            "$ref": "#/components/schemas/CleanedPageFacts"
+          },
+          "model": {
+            "type": "string",
+            "nullable": true
+          },
+          "input_tokens": {
+            "type": "integer"
+          },
+          "output_tokens": {
+            "type": "integer"
+          }
+        }
+      },
+      "CleanedCrawlArea": {
+        "type": "object",
+        "required": [
+          "id",
+          "heading",
+          "category",
+          "page_urls"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "heading": {
+            "type": "string"
+          },
+          "category": {
+            "type": "string"
+          },
+          "page_urls": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "CleanedCrawlPageRef": {
+        "type": "object",
+        "required": [
+          "url",
+          "title",
+          "page_type",
+          "area_ids"
+        ],
+        "properties": {
+          "url": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string",
+            "nullable": true
+          },
+          "page_type": {
+            "type": "string",
+            "enum": [
+              "landing",
+              "article",
+              "docs",
+              "listing",
+              "contact",
+              "legal",
+              "other"
+            ]
+          },
+          "area_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "CleanedCrawlSite": {
+        "type": "object",
+        "required": [
+          "navigation",
+          "footer",
+          "contacts"
+        ],
+        "properties": {
+          "navigation": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "footer": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "contacts": {
+            "$ref": "#/components/schemas/CleanedContacts"
+          }
+        }
       },
       "CleanedCrawl": {
         "type": "object",
-        "additionalProperties": true
+        "required": [
+          "crawl_id",
+          "model",
+          "site",
+          "areas",
+          "pages"
+        ],
+        "properties": {
+          "crawl_id": {
+            "type": "string"
+          },
+          "model": {
+            "type": "string",
+            "nullable": true
+          },
+          "site": {
+            "$ref": "#/components/schemas/CleanedCrawlSite"
+          },
+          "areas": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CleanedCrawlArea"
+            }
+          },
+          "pages": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CleanedCrawlPageRef"
+            }
+          }
+        }
       },
       "Account": {
         "type": "object",
@@ -1079,13 +1431,6 @@
             "type": "string"
           }
         }
-      }
-    },
-    "securitySchemes": {
-      "BearerAuth": {
-        "type": "http",
-        "scheme": "bearer",
-        "description": "Crawl key (lc_live_…) for /crawls, or Cognito JWT for /account and /billing."
       }
     }
   },

@@ -35,6 +35,12 @@ Quota is **not** charged for robots skips or failed fetches. Successful pages (`
 
 **Fix:** Poll `GET /v1/crawls/{id}` until `completed`, `cancelled`, or `failed`. Then poll `GET .../cleaned` if you need the rollup (`409` means wait).
 
+## Where are the cleaned JSON fields documented?
+
+**Cause:** Cleanup is typed JSON. The object keys are part of the public contract.
+
+**Fix:** Read [Cleanup JSON](/v2/cleanup). Look up sections by `areas[].id`. Page bodies are on `GET /pages?include=cleaned`, not on the site rollup. The same keys are in [OpenAPI](/openapi.json).
+
 ## Production rejected an http:// seed
 
 **Cause:** Production is HTTPS-only. Private IPs, localhost, and cloud metadata hosts are blocked (SSRF fail-closed).

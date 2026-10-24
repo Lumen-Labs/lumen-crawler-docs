@@ -71,7 +71,7 @@ Rules:
 - Poll GET /v1/crawls/{id} until status is completed, cancelled, or failed. There are no webhooks. 404 means unknown crawl, not pending.
 - Read Markdown with GET /v1/crawls/{id}/pages?include=markdown. Paginate using cursor = last item urlHash.
 - GET /map is in-universe only. GET /doors lists off-universe URLs and never includes bodies. To crawl another host, start a new crawl. follow_doors: true returns 422.
-- GET /cleaned is a second wait after crawl status. 409 cleanup_not_ready means wait. 404 means cleanup was skipped.
+- GET /cleaned is a second wait after crawl status. 409 cleanup_not_ready means wait. 404 means cleanup was skipped. Look up sections by areas[].id. Page bodies are on GET /pages?include=cleaned. Schema: OpenAPI CleanedPage / CleanedCrawl and /v2/cleanup.
 - On 402 quota_exceeded, max_pages does not fit remaining included pages. Do not retry the same max_pages. Failed fetches and robots skips do not consume quota; pages_ok does.
 - On 401 unregistered_key, the Bearer token is not a registered console key.
 - Production is HTTPS-only. Private IPs and metadata hosts are blocked.

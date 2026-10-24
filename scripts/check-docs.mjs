@@ -266,8 +266,16 @@ const deployWorkflow = await readFile(
 );
 const runtimePackageCommand = deployWorkflow
   .split("\n")
-  .find((line) => line.includes("tar -czf lumen-crawler-docs-release.tgz"));
-if (!runtimePackageCommand?.split(/\s+/).includes("content")) {
+  .reduce((joined, line, index, lines) => {
+    if (joined) return joined;
+    if (!line.includes("tar -czf lumen-crawler-docs-release.tgz")) return "";
+    let command = line.trimEnd();
+    for (let i = index; command.endsWith("\\") && i + 1 < lines.length; i += 1) {
+      command = `${command.slice(0, -1)} ${lines[i + 1].trim()}`;
+    }
+    return command;
+  }, "");
+if (!runtimePackageCommand.split(/\s+/).includes("content")) {
   errors.push(
     "Production runtime package must include content for Markdown and Docs MCP reads",
   );
