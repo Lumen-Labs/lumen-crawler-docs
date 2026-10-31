@@ -44,6 +44,6 @@
     "postcss": "^8.5.26",
     "tailwindcss": "^4.1.11",
     "typescript": "^7.0.2",
-    "yaml": "^2.8.1"
+    "yaml": "^2.9.1"
   }
 }
