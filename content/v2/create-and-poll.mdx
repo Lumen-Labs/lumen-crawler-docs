@@ -7,8 +7,9 @@ description: POST returns 202. Poll GET until a terminal status. Cancel stops ne
 
 ```json
 {
-  "url": "https://example.com",
+  "url": "https://example.com/docs",
   "allowed_domains": [],
+  "allowed_path_prefixes": ["/docs", "/guides"],
   "max_pages": 100,
   "follow_doors": false,
   "cleanup": true
@@ -19,13 +20,14 @@ description: POST returns 202. Poll GET until a terminal status. Cancel stops ne
 | --- | --- | --- |
 | `url` | required | Public `https` URL in production |
 | `allowed_domains` | `[]` | Extra eTLD+1 hosts, max 20 |
+| `allowed_path_prefixes` | Omitted | Up to 20 case-sensitive path prefixes, such as `/docs`. The seed must match one. |
 | `max_pages` | `100` | Min 1, cap 5000. Also reserved against monthly quota |
 | `follow_doors` | `false` | `true` returns **422** `follow_doors_unsupported` |
 | `cleanup` | `true` | Site and per-page cleaned JSON after the crawl |
 
 Headers: `Authorization: Bearer <key>`, `Idempotency-Key` (required), `Content-Type: application/json`.
 
-The response is a [Crawl object](/v2/reference/api/crawls) with `status: queued` and HTTP **202**.
+The response is a [Crawl object](/v2/reference/api/crawls) with `status: queued` and HTTP **202**. When prefixes are supplied, `config.allowed_path_prefixes` lists the normalized values. See [path scope](/v2/doors#path-scope) for matching rules.
 
 <AgentNote>
 

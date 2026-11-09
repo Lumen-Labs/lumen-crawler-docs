@@ -109,7 +109,8 @@ for (const [route, pathItem] of Object.entries(spec.paths ?? {})) {
 const create = spec.paths?.["/crawls"]?.post;
 if (create?.requestBody?.content?.["application/json"]) {
   create.requestBody.content["application/json"].example = {
-    url: "https://example.com",
+    url: "https://example.com/docs",
+    allowed_path_prefixes: ["/docs"],
     max_pages: 50,
     cleanup: true,
   };

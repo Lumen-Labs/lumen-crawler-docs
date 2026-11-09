@@ -27,6 +27,8 @@ curl -X POST https://crawler.lumen-labs.ai/v1/crawls \
 
 Save the `id` from the body. Replaying the same key and body returns the same 202. A different body with the same key returns **409** `idempotency_conflict`.
 
+To crawl one section, choose a seed within it, such as `https://example.com/docs`, and send `"allowed_path_prefixes": ["/docs"]`. In the console, enter `/docs` in **Allowed path prefixes**. See [path scope](/v2/doors#path-scope) for matching rules.
+
 ## 3. Poll until terminal
 
 Statuses: `queued`, `running`, `completed`, `cancelled`, `failed`. There are no webhooks.

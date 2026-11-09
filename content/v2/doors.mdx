@@ -1,15 +1,27 @@
 ---
 title: Doors and universe
-description: The crawl stays on the seed eTLD+1 plus allowlisted hosts. Off-universe links are doors.
+description: Restrict crawls by domain and path. Links outside the domain scope are doors.
 ---
 
 ## Universe
 
-Universe = eTLD+1 of the seed URL ∪ `allowed_domains` (each an eTLD+1 host, max 20). In-universe `http(s)` links are followed. Hash-only, `mailto:`, and `javascript:` links are dropped.
+Universe = eTLD+1 of the seed URL ∪ `allowed_domains` (each an eTLD+1 host, max 20). The crawler follows in-universe `http(s)` links that match the path scope. Hash-only, `mailto:`, and `javascript:` links are dropped.
 
 To include `docs.example.com` and `blog.example.net` from a seed on `www.example.com`, pass `"allowed_domains": ["example.net"]`. `example.com` is already in universe from the seed.
 
 Invalid allowlist values return **400** `invalid_domain`.
+
+## Path scope
+
+Set **Allowed path prefixes** in the [crawl console](https://crawlapp.lumen-labs.ai/app/crawls/), or send `allowed_path_prefixes` when you [create a crawl](/v2/create-and-poll#create).
+
+- `/docs` matches `/docs` and descendants such as `/docs/install`. It excludes `/docsite` and `/Docs`.
+- Multiple prefixes use OR matching. For example, `["/docs", "/guides"]` includes either section on any in-universe host.
+- Matching uses the case-sensitive URL pathname. Query strings and fragments do not affect the match. Supply paths beginning with `/` and omit the host, query, and fragment. Trailing slashes on prefixes are ignored.
+- The seed URL must match one prefix when the list is nonempty. A mismatch returns **400** `invalid_url`.
+- Discovered links, sitemap page entries, and page redirects must stay in scope. The crawler skips same-universe links outside the allowed paths. If a page redirects outside scope, the crawl records a failed fetch with `crawl_scope_blocked`.
+
+Leave the field blank or omit it to use domain-based scope alone.
 
 ## Doors
 

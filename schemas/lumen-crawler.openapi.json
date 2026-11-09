@@ -316,7 +316,10 @@
                 "$ref": "#/components/schemas/CreateCrawlRequest"
               },
               "example": {
-                "url": "https://example.com",
+                "url": "https://example.com/docs",
+                "allowed_path_prefixes": [
+                  "/docs"
+                ],
                 "max_pages": 50,
                 "cleanup": true
               }
@@ -636,6 +639,19 @@
               "type": "string"
             }
           },
+          "allowed_path_prefixes": {
+            "type": "array",
+            "maxItems": 20,
+            "description": "Optional case-sensitive pathname prefixes. /docs matches /docs and its descendants. The seed must match one prefix when the list is nonempty.",
+            "items": {
+              "type": "string",
+              "maxLength": 2048
+            },
+            "example": [
+              "/docs",
+              "/guides"
+            ]
+          },
           "max_pages": {
             "type": "integer",
             "default": 100,
@@ -726,6 +742,12 @@
             "type": "string"
           },
           "allowed_domains": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "allowed_path_prefixes": {
             "type": "array",
             "items": {
               "type": "string"
